@@ -19,15 +19,16 @@ def health_check():
 @app.route('/recommend', methods=['POST'])
 def recommend():
     data = request.get_json()
-    title = data.get('title')
+    movie_id = data.get('movie_id')
+    title = data.get('title') # fallback if still used elsewhere
     
-    if not title:
-        return jsonify({"error": "Movie title is required"}), 400
+    if not movie_id and not title:
+        return jsonify({"error": "Movie ID or title is required"}), 400
         
     try:
-        recommendations = get_recommendations(title)
+        recommendations = get_recommendations(movie_id=movie_id, title=title)
         return jsonify({
-            "base_movie": title,
+            "base_movie_id": movie_id,
             "recommendations": recommendations
         })
     except ValueError as ve:

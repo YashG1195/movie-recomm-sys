@@ -43,11 +43,18 @@ router.get('/search', async (req, res) => {
 // @access  Public
 router.get('/trending', async (req, res) => {
   try {
+    const apiKey = process.env.TMDB_API_KEY;
     const response = await axios.get(
-      `${TMDB_BASE_URL}/trending/movie/day?language=en-US`,
-      getTmdbHeaders()
+      `${TMDB_BASE_URL}/trending/movie/week?api_key=${apiKey}`
     );
-    res.json(response.data.results);
+    const movies = response.data.results.map(movie => ({
+      id: movie.id,
+      title: movie.title,
+      poster_path: movie.poster_path,
+      vote_average: movie.vote_average,
+      release_date: movie.release_date
+    }));
+    res.json(movies);
   } catch (error) {
     console.error('TMDB Trending Error:', error?.response?.data || error.message);
     res.status(500).json({ message: 'Error fetching from TMDB', error: error?.response?.data || error.message });
@@ -91,6 +98,21 @@ router.get('/:id', async (req, res) => {
   } catch (error) {
     console.error('TMDB Details Error:', error?.response?.data || error.message);
     res.status(500).json({ message: 'Error fetching from TMDB', error: error?.response?.data || error.message });
+  }
+});
+
+// @route   GET /api/movies/recommend/:movieId
+// @desc    Get recommendations for a movie
+// @access  Public
+router.get('/recommend/:movieId', async (req, res) => {
+  try {
+    const mlResponse = await axios.post(`${process.env.ML_SERVICE_URL || 'http://localhost:5001'}/recommend`, {
+      movie_id: req.params.movieId
+    });
+    res.json(mlResponse.data);
+  } catch (error) {
+    console.error('ML Service Error:', error?.response?.data || error.message);
+    res.status(500).json({ message: 'Error fetching recommendations', error: error?.response?.data || error.message });
   }
 });
 
