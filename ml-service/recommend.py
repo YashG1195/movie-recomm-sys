@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import os
+import json
 
 df = None
 cosine_sim = None
@@ -10,85 +11,72 @@ indices = None
 def load_data():
     global df, cosine_sim, indices
     
-    csv_path = 'movies_sample.csv'
+    csv_path = 'movies.csv'
     
-    # If sample dataset doesn't exist, create a tiny one to bootstrap
     if not os.path.exists(csv_path):
-        data = {
-            'id': [27205, 157336, 155, 19995, 293660, 24428, 1726],
-            'title': ['Inception', 'Interstellar', 'The Dark Knight', 'Avatar', 'Deadpool', 'The Avengers', 'Iron Man'],
-            'genres': ['Action Sci-Fi Thriller', 'Adventure Drama Sci-Fi', 'Action Crime Drama', 'Action Adventure Fantasy Sci-Fi', 'Action Adventure Comedy', 'Sci-Fi Action Adventure', 'Action Sci-Fi Adventure'],
-            'overview': [
-                'A thief who steals corporate secrets through the use of dream-sharing technology.',
-                'A team of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.',
-                'When the menace known as the Joker wreaks havoc and chaos on the people of Gotham.',
-                'On the lush alien world of Pandora live the Na\'vi.',
-                'A former Special Forces operative turned mercenary is subjected to a rogue experiment.',
-                'Earth\'s mightiest heroes must come together and learn to fight as a team.',
-                'After being held captive in an Afghan cave, billionaire engineer Tony Stark creates a unique weaponized suit of armor.'
-            ]
-        }
-        df = pd.DataFrame(data)
-        df.to_csv(csv_path, index=False)
+        print(f"Error: {csv_path} not found.")
+        return
+        
+    print("Loading large movie dataset...")
+    df = pd.read_csv(csv_path)
+    
+    # Parse genres and keywords
+    def extract_names(x):
+        try:
+            data = json.loads(x)
+            return " ".join([d['name'] for d in data])
+        except:
+            return ""
+
+    print("Parsing genres and keywords...")
+    df['genres_parsed'] = df['genres'].apply(extract_names)
+    
+    if 'keywords' in df.columns:
+        df['keywords_parsed'] = df['keywords'].apply(extract_names)
     else:
-        df = pd.read_csv(csv_path)
-
-    # We will combine genres and overview to form a single text soup for content based filtering
-    df['combined_features'] = df['genres'] + " " + df['overview']
-
-    # Initialize TF-IDF Vectorizer
+        df['keywords_parsed'] = ""
+        
+    # Combine features
+    df['combined_features'] = df['genres_parsed'] + " " + df['keywords_parsed'] + " " + df['overview'].fillna('')
+    
+    print("Computing TF-IDF Matrix...")
     tfidf = TfidfVectorizer(stop_words='english')
-
-    # Fit and transform the data
-    tfidf_matrix = tfidf.fit_transform(df['combined_features'].fillna(''))
-
-    # Compute cosine similarity
+    tfidf_matrix = tfidf.fit_transform(df['combined_features'])
+    
+    print("Computing Cosine Similarity...")
     cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
-
-    # Create a pandas series to map titles to indices
+    
     indices = pd.Series(df.index, index=df['title']).drop_duplicates()
+    print("ML Engine is ready!")
 
 def get_recommendations(movie_id=None, title=None, top_n=10):
     global df, cosine_sim, indices
     
+    if df is None or cosine_sim is None:
+        raise ValueError("Model is not loaded yet.")
+        
     idx = None
     
-    # Try finding by title first if provided
     if title and title in indices:
         idx = indices[title]
-    
-    # In a real app we'd map movie_id to the row index, but since we are using 
-    # a dummy dataset of 5 movies, it's highly likely the TMDB ID won't match.
-    # So if we don't have it, we'll return some fallback recommendations to avoid breaking the UI.
+    elif movie_id:
+        matches = df.index[df['id'] == int(movie_id)].tolist()
+        if matches:
+            idx = matches[0]
     
     if idx is None:
-        # Fallback recommendations if movie not in our small dataset
-        recommendations = df.head(top_n)[['id', 'title', 'genres']].to_dict(orient='records')
-        # We simulate poster_path to null, or the frontend handles it
-        for rec in recommendations:
-            rec['poster_path'] = None
-        return recommendations
+        raise ValueError(f"Movie not found in dataset.")
         
-    # If there are duplicate titles, take the first one
     if isinstance(idx, pd.Series):
         idx = idx.iloc[0]
         
-    # Get pairwise similarity scores
     sim_scores = list(enumerate(cosine_sim[idx]))
-    
-    # Sort movies based on similarity scores
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-    
-    # Get top N similar movies (excluding itself)
     sim_scores = sim_scores[1:top_n+1]
     
-    # Get movie indices
     movie_indices = [i[0] for i in sim_scores]
     
-    # Return top N most similar movies
-    recommendations = df.iloc[movie_indices][['id', 'title', 'genres']].to_dict(orient='records')
+    recommendations = df.iloc[movie_indices][['id', 'title', 'genres_parsed']].rename(columns={'genres_parsed': 'genres'}).to_dict(orient='records')
     for rec in recommendations:
-        rec['poster_path'] = None # Mock dataset doesn't have posters
+        rec['poster_path'] = None 
     return recommendations
-    
-
