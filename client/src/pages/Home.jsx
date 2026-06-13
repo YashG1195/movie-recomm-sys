@@ -36,7 +36,11 @@ const Home = () => {
               <Search size={20} />
               Start Searching
             </button>
-            <button className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button 
+              className="btn-secondary" 
+              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+              onClick={() => document.getElementById('trending').scrollIntoView({ behavior: 'smooth' })}
+            >
               <Play size={20} />
               Trending Now
             </button>
@@ -44,13 +48,13 @@ const Home = () => {
         </div>
       </section>
 
-      <section style={{ margin: '60px 0' }}>
+      <section id="trending" style={{ margin: '60px 0' }}>
         <h2>Trending Now</h2>
         {error && <p style={{ color: 'var(--primary)', marginBottom: '16px' }}>{error}</p>}
         <div className="movie-grid">
           {loading ? (
             /* Loading Skeleton */
-            [1, 2, 3, 4, 5, 6].map(i => (
+            [1, 2, 3, 4, 5].map(i => (
               <div key={i} className="movie-card animate-pulse" style={{ background: 'var(--bg-card)' }}>
                 <div style={{ width: '100%', height: '300px', background: 'rgba(255,255,255,0.05)' }}></div>
                 <div style={{ padding: '20px' }}>
@@ -61,9 +65,17 @@ const Home = () => {
             ))
           ) : (
             trending.map(movie => (
-              <div key={movie.id} className="movie-card">
+              <div 
+                key={movie.id} 
+                className="movie-card" 
+                onClick={() => navigate(`/movie/${movie.id}`)}
+              >
                 {movie.poster_path ? (
-                  <img src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} alt={movie.title} />
+                  <img 
+                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} 
+                    alt={movie.title} 
+                    onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder.jpg'; }}
+                  />
                 ) : (
                   <div style={{ width: '100%', height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1a1a24' }}>
                     <ImageIcon size={48} color="var(--text-secondary)" />

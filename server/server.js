@@ -8,13 +8,13 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
 app.use(express.json());
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
 
 // Database connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/cinematch';
+const MONGO_URI = process.env.MONGO_URI;
 
-mongoose.connect(MONGODB_URI)
+mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB connected successfully'))
   .catch(err => console.error('MongoDB connection error:', err));
 
@@ -24,7 +24,8 @@ app.get('/', (req, res) => {
 });
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
+const authRoutes = require('./routes/auth');
+app.use('/api/auth', authRoutes);
 app.use('/api/movies', require('./routes/movies'));
 app.use('/api/recommendations', require('./routes/recommendations'));
 app.use('/api/watchlist', require('./routes/watchlist'));

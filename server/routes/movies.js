@@ -52,7 +52,8 @@ router.get('/trending', async (req, res) => {
       title: movie.title,
       poster_path: movie.poster_path,
       vote_average: movie.vote_average,
-      release_date: movie.release_date
+      release_date: movie.release_date,
+      genre_ids: movie.genre_ids
     }));
     res.json(movies);
   } catch (error) {

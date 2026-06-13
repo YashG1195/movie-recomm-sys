@@ -82,8 +82,15 @@ const Search = () => {
 
       <div className="movie-grid">
         {results.map(movie => (
-          <div key={movie.id} className="movie-card" style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ position: 'relative', flex: 1 }}>
+          <div 
+            key={movie.id} 
+            className="movie-card" 
+            style={{ display: 'flex', flexDirection: 'column' }}
+          >
+            <div 
+              style={{ position: 'relative', flex: 1, cursor: 'pointer' }}
+              onClick={() => navigate(`/movie/${movie.id}`)}
+            >
               {movie.poster_path ? (
                 <img src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} alt={movie.title} />
               ) : (
