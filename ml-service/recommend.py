@@ -15,13 +15,15 @@ def load_data():
     # If sample dataset doesn't exist, create a tiny one to bootstrap
     if not os.path.exists(csv_path):
         data = {
-            'id': [1, 2, 3, 4, 5],
-            'title': ['Inception', 'Interstellar', 'The Dark Knight', 'Avengers', 'Iron Man'],
-            'genres': ['Action Sci-Fi Thriller', 'Adventure Drama Sci-Fi', 'Action Crime Drama', 'Action Sci-Fi', 'Action Sci-Fi'],
+            'id': [27205, 157336, 155, 19995, 293660, 24428, 1726],
+            'title': ['Inception', 'Interstellar', 'The Dark Knight', 'Avatar', 'Deadpool', 'The Avengers', 'Iron Man'],
+            'genres': ['Action Sci-Fi Thriller', 'Adventure Drama Sci-Fi', 'Action Crime Drama', 'Action Adventure Fantasy Sci-Fi', 'Action Adventure Comedy', 'Sci-Fi Action Adventure', 'Action Sci-Fi Adventure'],
             'overview': [
                 'A thief who steals corporate secrets through the use of dream-sharing technology.',
                 'A team of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.',
                 'When the menace known as the Joker wreaks havoc and chaos on the people of Gotham.',
+                'On the lush alien world of Pandora live the Na\'vi.',
+                'A former Special Forces operative turned mercenary is subjected to a rogue experiment.',
                 'Earth\'s mightiest heroes must come together and learn to fight as a team.',
                 'After being held captive in an Afghan cave, billionaire engineer Tony Stark creates a unique weaponized suit of armor.'
             ]
