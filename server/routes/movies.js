@@ -58,7 +58,15 @@ router.get('/trending', async (req, res) => {
     res.json(movies);
   } catch (error) {
     console.error('TMDB Trending Error:', error?.response?.data || error.message);
-    res.status(500).json({ message: 'Error fetching from TMDB', error: error?.response?.data || error.message });
+    // Return fallback movies instead of failing
+    const FALLBACK_MOVIES = [
+      { id: 27205, title: "Inception", poster_path: "/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg", vote_average: 8.8, release_date: "2010-07-15" },
+      { id: 157336, title: "Interstellar", poster_path: "/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg", vote_average: 8.6, release_date: "2014-11-05" },
+      { id: 155, title: "The Dark Knight", poster_path: "/qJ2tW6WMUDux911r6m7haRef0WH.jpg", vote_average: 8.5, release_date: "2008-07-16" },
+      { id: 19995, title: "Avatar", poster_path: "/kyeqWdyKOUAcDzEQqn6EWkEZ2Fs.jpg", vote_average: 7.9, release_date: "2009-12-15" },
+      { id: 293660, title: "Deadpool", poster_path: "/fSRb7vyIP8rQpL0I47P3qUsEKX3.jpg", vote_average: 7.6, release_date: "2016-02-09" }
+    ];
+    res.json(FALLBACK_MOVIES);
   }
 });
 
